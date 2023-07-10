@@ -19,6 +19,16 @@ The detail of feature is as follows.
 
 Apache License, Version 2.0
 
+## Environment
+
+Required Java environment: Java 16
+
+## Dependency
+
+- Google gson `2.10.1`
+- Apache HttpComponents Core `4.4.16`
+- Apache HttpComponents Client `4.5.14`
+
 ## Maven
 
 ```xml
