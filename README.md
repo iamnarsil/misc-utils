@@ -21,4 +21,12 @@ Apache License, Version 2.0
 
 ## Maven
 
+```xml
+<dependency>
+  <groupId>com.github.iamnarsil</groupId>
+  <artifactId>misc-utils</artifactId>
+  <version>1.0-SNAPSHOT</version>
+</dependency>
+```
+
 ## Description
