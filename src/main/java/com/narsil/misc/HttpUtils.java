@@ -16,6 +16,11 @@ import org.apache.http.conn.routing.RouteInfo;
 import org.apache.http.conn.ssl.SSLConnectionSocketFactory;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.StringEntity;
+import org.apache.http.entity.mime.FormBodyPart;
+import org.apache.http.entity.mime.FormBodyPartBuilder;
+import org.apache.http.entity.mime.HttpMultipartMode;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.FileBody;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
@@ -50,7 +55,7 @@ import java.util.logging.Logger;
  * supports GET, POST method
  *
  * @author iamnarsil
- * @version 20230705
+ * @version 20230711
  * @since 20230328
  */
 public class HttpUtils {
@@ -216,6 +221,25 @@ public class HttpUtils {
     public Tuple.Pair<Integer, String> postForm(List<NameValuePair> form) {
         return post(new UrlEncodedFormEntity(form, StandardCharsets.UTF_8),
                 ContentType.APPLICATION_FORM_URLENCODED.toString());
+    }
+
+    /**
+     * post file
+     *
+     * @param file file
+     * @return response data
+     */
+    public Tuple.Pair<Integer, String> postFile(File file) {
+
+        FormBodyPart formBodyPart = FormBodyPartBuilder.create("file", new FileBody(file)).build();
+
+        MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+        builder.setMode(HttpMultipartMode.BROWSER_COMPATIBLE);
+        builder.addPart(formBodyPart);
+        builder.setContentType(ContentType.MULTIPART_FORM_DATA.withCharset(StandardCharsets.UTF_8));
+        HttpEntity httpEntity = builder.build();
+
+        return post(httpEntity, null);
     }
 
     /**
