@@ -9,11 +9,12 @@ The detail of feature is as follows.
 - File operation
 - HTTP client
 - JSON operation
-- Specific data print (e.g., byte data, list)
+- Specific data printing (e.g., byte data, list)
 - Random generator
 - Stop watch
 - ZIP operation
-- Specific data object (e.g., `Pair`, `Ternary`)
+- Useful data object (e.g., `Pair`, `Ternary`)
+- Enumeration serialization
 
 ## License
 
@@ -21,7 +22,7 @@ Apache License, Version 2.0
 
 ## Environment
 
-Required Java environment: Java 16
+Required Java environment: Java 16 (or above)
 
 ## Dependency
 
@@ -35,7 +36,7 @@ Required Java environment: Java 16
 <dependency>
   <groupId>com.github.iamnarsil</groupId>
   <artifactId>misc-utils</artifactId>
-  <version>1.0-SNAPSHOT</version>
+  <version>1.2-SNAPSHOT</version>
 </dependency>
 ```
 

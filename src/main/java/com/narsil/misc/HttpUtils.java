@@ -55,7 +55,7 @@ import java.util.logging.Logger;
  * supports GET, POST method
  *
  * @author iamnarsil
- * @version 20230711
+ * @version 20230712
  * @since 20230328
  */
 public class HttpUtils {
@@ -366,7 +366,7 @@ public class HttpUtils {
 
     private RequestConfig configRequestConfig() {
 
-        // add default request configuration (timeout + proxy setting)
+        // add default request configuration (timeout)
         RequestConfig.Builder rcb = RequestConfig.custom()
                 .setConnectTimeout(maxConnectTimeout)
                 .setConnectionRequestTimeout(maxConnectTimeout)

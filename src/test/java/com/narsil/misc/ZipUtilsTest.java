@@ -15,6 +15,9 @@ public class ZipUtilsTest {
 
     private byte[] compressInput;
     private String uncompressInput;
+    private String sourceDirPath;
+    private String zipFilePath;
+
 
     @Before
     public void init() {
@@ -23,6 +26,9 @@ public class ZipUtilsTest {
         Arrays.fill(compressInput, (byte) 0x00);
 
         uncompressInput = "H4sIAAAAAAAA/+3BIQEAAAACIP1/2hkWIA0AAAAAAAAAAAAAAAAAAABwNgPCCugAQAAA";
+
+        sourceDirPath = "D:\\temp\\abc";
+        zipFilePath = "D:\\temp\\abc.zip";
     }
 
     @Test
@@ -41,5 +47,12 @@ public class ZipUtilsTest {
 
         byte[] uncompressOutput = ZipUtils.gzipUncompress(uncompressInput);
         MiscUtils.showBytes(uncompressOutput, "uncompress output");
+    }
+
+    @Test
+    public void test02_zipDirectory() {
+
+        boolean result = ZipUtils.zipDirectory(sourceDirPath, zipFilePath);
+        LOGGER.info("result = " + result);
     }
 }

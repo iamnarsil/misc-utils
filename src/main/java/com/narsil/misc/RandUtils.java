@@ -8,7 +8,7 @@ import java.util.logging.Logger;
  * random generator toolkit
  *
  * @author iamnarsil
- * @version 20230705
+ * @version 20230712
  * @since 20230328
  */
 public class RandUtils {
@@ -38,7 +38,6 @@ public class RandUtils {
             secureRandom.nextInt(10);
 
         } catch (NoSuchAlgorithmException e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
     }

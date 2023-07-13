@@ -17,42 +17,60 @@ import java.util.stream.Stream;
  * file operation toolkit
  *
  * @author iamnarsil
- * @version 20230710
+ * @version 20230713
  * @since 20230328
  */
 public class FileUtils {
 
     private static final Logger LOGGER = Logger.getLogger("FileUtils");
 
+    // max allowable file size: 1 GB
+    private static final long MAX_FLIE_SIZE = 1073741824L;
+
     /**
      * write raw data to file
      *
-     * @param dirPath  directory path
-     * @param fileName file name
+     * @param filePath  file path
      * @param bytes    raw data
      * @return result
      */
-    public static boolean writeBytesToPath(String dirPath, String fileName, byte[] bytes) {
+    public static boolean writeBytesToPath(String filePath, byte[] bytes) {
 
-        if (dirPath == null || dirPath.isBlank() || fileName == null || fileName.isBlank() || bytes == null || bytes.length == 0) {
+        // check file path
+        if (filePath == null || filePath.isBlank()) {
+            LOGGER.severe("invalid file path");
             return false;
         }
 
-        if (dirPath.endsWith(File.separator)) {
-            dirPath = dirPath.substring(0, dirPath.length() - 1);
+        // check if file exists
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.isFile()) {
+                if (!file.delete()) {
+                    LOGGER.severe("fail to delete file");
+                }
+            }
+        } else {
+            // check if parent directory exists
+            File parent = file.getParentFile();
+            if (parent == null) {
+                String dirPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
+                File dir = new File(dirPath);
+                if (!dir.mkdirs()) {
+                    LOGGER.severe("fail to create directory");
+                }
+            } else {
+                if (!parent.exists() || !parent.isDirectory()) {
+                    if (!parent.mkdirs()) {
+                        LOGGER.severe("fail to create directory");
+                    }
+                }
+            }
         }
-
-        File dir = new File(dirPath);
-        if (!dir.exists() && !dir.mkdirs()) {
-            return false;
-        }
-
-        String filePath = dirPath.concat(File.separator).concat(fileName);
 
         try (FileOutputStream fos = new FileOutputStream(filePath)) {
             fos.write(bytes);
         } catch (Exception e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
 
@@ -62,37 +80,53 @@ public class FileUtils {
     /**
      * write text data to file
      *
-     * @param dirPath  directory path
-     * @param fileName file name
+     * @param filePath  file path
      * @param textList text data
      * @return result
      */
-    public static boolean writeTextToPath(String dirPath, String fileName, List<String> textList) {
+    public static boolean writeTextToPath(String filePath, List<String> textList) {
 
-        if (dirPath == null || dirPath.isBlank() || fileName == null || fileName.isBlank() || textList == null || textList.isEmpty()) {
+        // check file path
+        if (filePath == null || filePath.isBlank()) {
+            LOGGER.severe("invalid file path");
             return false;
         }
 
-        if (dirPath.endsWith(File.separator)) {
-            dirPath = dirPath.substring(0, dirPath.length() - 1);
+        // check if file exists
+        File file = new File(filePath);
+        if (file.exists()) {
+            if (file.isFile()) {
+                if (!file.delete()) {
+                    LOGGER.severe("fail to delete file");
+                }
+            }
+        } else {
+            // check if parent directory exists
+            File parent = file.getParentFile();
+            if (parent == null) {
+                String dirPath = filePath.substring(0, filePath.lastIndexOf(File.separator));
+                File dir = new File(dirPath);
+                if (!dir.mkdirs()) {
+                    LOGGER.severe("fail to create directory");
+                }
+            } else {
+                if (!parent.exists() || !parent.isDirectory()) {
+                    if (!parent.mkdirs()) {
+                        LOGGER.severe("fail to create directory");
+                    }
+                }
+            }
         }
-
-        File dir = new File(dirPath);
-        if (!dir.exists() && !dir.mkdirs()) {
-            return false;
-        }
-
-        String filePath = dirPath.concat(File.separator).concat(fileName);
 
         String text = "";
         for (String s : textList) {
             text = text.concat(s).concat("\n");
         }
 
-        try (FileWriter fileWriter = new FileWriter(filePath); BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
+        try (FileWriter fileWriter = new FileWriter(filePath);
+                BufferedWriter bufferedWriter = new BufferedWriter(fileWriter)) {
             bufferedWriter.write(text);
         } catch (Exception e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
 
@@ -102,26 +136,29 @@ public class FileUtils {
     /**
      * read raw data from file
      *
-     * @param dirPath  directory path
-     * @param fileName file name
+     * @param filePath file path
      * @return raw data
      */
-    public static byte[] readBytesFromPath(String dirPath, String fileName) {
+    public static byte[] readBytesFromPath(String filePath) {
 
         byte[] bytes = new byte[0];
 
-        if (dirPath == null || dirPath.isBlank() || fileName == null || fileName.isBlank()) {
+        // check file path
+        if (filePath == null || filePath.isBlank()) {
+            LOGGER.severe("invalid file path");
             return bytes;
         }
 
-        if (dirPath.endsWith(File.separator)) {
-            dirPath = dirPath.substring(0, dirPath.length() - 1);
+        // check if file exists
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            LOGGER.severe("file not exit");
+            return bytes;
         }
 
-        String filePath = dirPath.concat(File.separator).concat(fileName);
-        File file = new File(filePath);
-
-        if (!file.exists()) {
+        // check file length
+        if (file.length() > MAX_FLIE_SIZE) {
+            LOGGER.severe("file size exceeds limit");
             return bytes;
         }
 
@@ -132,7 +169,6 @@ public class FileUtils {
                 return bytes;
             }
         } catch (Exception e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
 
@@ -142,26 +178,29 @@ public class FileUtils {
     /**
      * read text data from file
      *
-     * @param dirPath directory path
-     * @param fileName file name
+     * @param filePath file path
      * @return text data
      */
-    public static List<String> readTextFromPath(String dirPath, String fileName) {
+    public static List<String> readTextFromPath(String filePath) {
 
         List<String> textList = new ArrayList<>();
 
-        if (dirPath == null || dirPath.isBlank() || fileName == null || fileName.isBlank()) {
+        // check file path
+        if (filePath == null || filePath.isBlank()) {
+            LOGGER.severe("invalid file path");
             return textList;
         }
 
-        if (dirPath.endsWith(File.separator)) {
-            dirPath = dirPath.substring(0, dirPath.length() - 1);
+        // check if file exists
+        File file = new File(filePath);
+        if (!file.exists() || !file.isFile()) {
+            LOGGER.severe("file not exit");
+            return textList;
         }
 
-        String filePath = dirPath.concat(File.separator).concat(fileName);
-        File file = new File(filePath);
-
-        if (!file.exists()) {
+        // check file length
+        if (file.length() > MAX_FLIE_SIZE) {
+            LOGGER.severe("file size exceeds limit");
             return textList;
         }
 
@@ -170,7 +209,6 @@ public class FileUtils {
         try (Stream<String> lines = Files.lines(Paths.get(filePath))) {
             lines.forEach(textList::add);
         } catch (Exception e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
 
@@ -193,10 +231,58 @@ public class FileUtils {
                 file = new File(fileUrl.toURI());
             }
         } catch (Exception e) {
-            // e.printStackTrace();
             LOGGER.severe(e.getMessage());
         }
 
         return file;
+    }
+
+    /**
+     * check if directory exists, otherwise create it
+     *
+     * @param dirPath target directory absolute path
+     * @return check result
+     */
+    public static boolean checkDirectory(String dirPath) {
+
+        // check directory path
+        if (dirPath == null || dirPath.isBlank()) {
+            return false;
+        }
+
+        File dir = new File(dirPath);
+        if (dir.exists() && dir.isDirectory()) {
+            return true;
+        } else {
+            if (dir.mkdirs()) {
+                return true;
+            } else {
+                LOGGER.severe("fail to create directory");
+                return false;
+            }
+        }
+    }
+
+    public static String normalizeDirPath(String dirPath, boolean endWithSeparator) {
+
+        // check dir path
+        if (dirPath == null || dirPath.isBlank()) {
+            return "";
+        }
+
+        String path = dirPath.trim();
+        if (endWithSeparator) {
+            if (path.endsWith(File.separator)) {
+                return path;
+            } else {
+                return path.concat(File.separator);
+            }
+        } else {
+            if (path.endsWith(File.separator)) {
+                return path.substring(0, path.length() - 1);
+            } else {
+                return path;
+            }
+        }
     }
 }

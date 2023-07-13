@@ -53,7 +53,7 @@ public class JsonUtilsTest {
                 file = new File(fileUrl.toURI());
             }
         } catch (Exception e) {
-            e.printStackTrace();
+            LOGGER.info(e.getMessage());
         }
 
         policy = FieldNamingPolicy.UPPER_CASE_WITH_UNDERSCORES;
