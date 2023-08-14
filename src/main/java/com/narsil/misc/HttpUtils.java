@@ -55,7 +55,7 @@ import java.util.logging.Logger;
  * supports GET, POST method
  *
  * @author iamnarsil
- * @version 20230712
+ * @version 20230814
  * @since 20230328
  */
 public class HttpUtils {
@@ -74,6 +74,9 @@ public class HttpUtils {
 
     private final String url;
     private final Map<String, String> header;
+
+    // allowed host names
+    private final List<String> allowedHostnames;
 
     // unit: ms
     private final int maxConnectTimeout;
@@ -99,6 +102,7 @@ public class HttpUtils {
 
         this.url = builder.url;
         this.header = builder.header;
+        this.allowedHostnames = builder.allowedHostnames;
         this.maxConnectTimeout = builder.maxConnectTimeout;
         this.maxRetryTimes = builder.maxRetryTimes;
         this.useProxy = builder.useProxy;
@@ -381,7 +385,24 @@ public class HttpUtils {
         sslContext.init(new KeyManager[0], new TrustManager[] { trustManager }, new SecureRandom());
 
         SSLContext.setDefault(sslContext);
-        HostnameVerifier hostnameVerifier = (hostname, session) -> true;
+        // HostnameVerifier hostnameVerifier = (hostname, session) -> true;
+
+        HostnameVerifier hostnameVerifier = (hostname, session) -> {
+
+            boolean isVerified;
+            if (allowedHostnames != null && !allowedHostnames.isEmpty()) {
+                isVerified = allowedHostnames.contains(hostname);
+            } else {
+                // directly pass when allowed hostname list is NOT set
+                isVerified = true;
+            }
+
+            if(!isVerified && enablePrinting) {
+                LOGGER.warning("{" + hostname + "} is not in allowed hostname list");
+            }
+
+            return isVerified;
+        };
 
         return new SSLConnectionSocketFactory(sslContext, hostnameVerifier);
     }
@@ -446,6 +467,9 @@ public class HttpUtils {
         private String url;
         private Map<String, String> header;
 
+        // allowed host names
+        private List<String> allowedHostnames;
+
         // unit: ms
         private int maxConnectTimeout = 30000;
         private int maxRetryTimes = 0;
@@ -469,6 +493,11 @@ public class HttpUtils {
 
         public Builder setHeader(Map<String, String> header) {
             this.header = header;
+            return this;
+        }
+
+        public Builder setAllowedHostnames(List<String> allowedHostnames) {
+            this.allowedHostnames = allowedHostnames;
             return this;
         }
 
