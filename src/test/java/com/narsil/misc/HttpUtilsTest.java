@@ -40,7 +40,7 @@ public class HttpUtilsTest {
             maxConnectionTimeout = 3000;
 
         } catch (Exception e) {
-            LOGGER.info(e.getMessage());
+            LOGGER.severe(e.getMessage());
         }
     }
 

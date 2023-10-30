@@ -8,7 +8,6 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.JsonSyntaxException;
 import com.google.gson.reflect.TypeToken;
 
 import java.io.File;
@@ -26,7 +25,7 @@ import java.util.logging.Logger;
  * including Json-format string (JS), Google Json element (JE), Java Map (Map) and serializable value object (VO).
  *
  * @author iamnarsil
- * @version 20230705
+ * @version 20231030
  * @since 20230328
  */
 public class JsonUtils {
@@ -46,7 +45,7 @@ public class JsonUtils {
             if (jsonElement != null && !jsonElement.isJsonNull()) {
                 try {
                     JsonObject jsonObject = jsonElement.getAsJsonObject();
-                    return (jsonObject.size() == 0);
+                    return (jsonObject.isEmpty());
                 } catch (Exception e) {
                     LOGGER.severe(e.getMessage());
                 }
@@ -54,6 +53,30 @@ public class JsonUtils {
         }
 
         return true;
+    }
+
+    /**
+     * construct gson with policy & strategy
+     *
+     * @param fnStrategy field naming strategy
+     * @param exStrategy exclusion strategy
+     * @return gson
+     */
+    private static Gson constructGson(FieldNamingStrategy fnStrategy, ExclusionStrategy exStrategy) {
+
+        GsonBuilder gsonBuilder = new GsonBuilder()
+                .disableHtmlEscaping()
+                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+        if (fnStrategy != null) {
+            gsonBuilder.setFieldNamingStrategy(fnStrategy);
+        }
+
+        if (exStrategy != null) {
+            gsonBuilder.addSerializationExclusionStrategy(exStrategy);
+        }
+
+        return gsonBuilder.create();
     }
 
     /**
@@ -72,52 +95,17 @@ public class JsonUtils {
      *
      * @param vo value object
      * @param typeOfT class type of value object (ex: ValueObject.class)
-     * @param policy field naming policy
-     * @param strategy exclusion strategy
-     * @return json string
-     */
-    public static String voToJs(Object vo, Type typeOfT, FieldNamingPolicy policy, ExclusionStrategy strategy) {
-
-        GsonBuilder gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-        if (policy != null) {
-            gsonBuilder.setFieldNamingPolicy(policy);
-        }
-
-        if (strategy != null) {
-            gsonBuilder.addSerializationExclusionStrategy(strategy);
-        }
-
-        Gson gson = gsonBuilder.create();
-        return gson.toJson(vo, typeOfT);
-    }
-
-    /**
-     * value object -> json string (with policy & strategy)
-     *
-     * @param vo value object
-     * @param typeOfT class type of value object (ex: ValueObject.class)
      * @param fnStrategy field naming strategy
      * @param exStrategy exclusion strategy
      * @return json string
      */
-    public static String voToJs(Object vo, Type typeOfT, FieldNamingStrategy fnStrategy, ExclusionStrategy exStrategy) {
+    public static String voToJs(
+            Object vo,
+            Type typeOfT,
+            FieldNamingStrategy fnStrategy,
+            ExclusionStrategy exStrategy) {
 
-        GsonBuilder gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-        if (fnStrategy != null) {
-            gsonBuilder.setFieldNamingStrategy(fnStrategy);
-        }
-
-        if (exStrategy != null) {
-            gsonBuilder.addSerializationExclusionStrategy(exStrategy);
-        }
-
-        Gson gson = gsonBuilder.create();
+        Gson gson = constructGson(fnStrategy, exStrategy);
         return gson.toJson(vo, typeOfT);
     }
 
@@ -129,12 +117,25 @@ public class JsonUtils {
      * @return google json object
      */
     public static JsonElement voToJe(Object vo, Type typeOfT) {
+        return voToJe(vo, typeOfT, null, null);
+    }
 
-        GsonBuilder gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    /**
+     * value object -> google json object
+     *
+     * @param vo value object
+     * @param typeOfT class type of value object (ex: ValueObject.class)
+     * @param fnStrategy field naming strategy
+     * @param exStrategy exclusion strategy
+     * @return google json object
+     */
+    public static JsonElement voToJe(
+            Object vo,
+            Type typeOfT,
+            FieldNamingStrategy fnStrategy,
+            ExclusionStrategy exStrategy) {
 
-        Gson gson = gsonBuilder.create();
+        Gson gson = constructGson(fnStrategy, exStrategy);
         return gson.toJsonTree(vo, typeOfT);
     }
 
@@ -166,7 +167,7 @@ public class JsonUtils {
      * @return value object
      */
     public static <T> T jsToVo(String jsonString, Type typeOfT) {
-        return jsToVo(jsonString, typeOfT, null);
+        return jsToVo(jsonString, typeOfT, null, null);
     }
 
     /**
@@ -174,22 +175,19 @@ public class JsonUtils {
      *
      * @param jsonString json string
      * @param typeOfT class type of value object (ex: ValueObject.class)
+     * @param fnStrategy field naming strategy
+     * @param exStrategy exclusion strategy
      * @param <T> value object
-     * @param policy field naming policy
      * @return value object
      */
-    public static <T> T jsToVo(String jsonString, Type typeOfT, FieldNamingPolicy policy) {
-
-        GsonBuilder gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
-
-        if (policy != null) {
-            gsonBuilder.setFieldNamingPolicy(policy);
-        }
+    public static <T> T jsToVo(
+            String jsonString,
+            Type typeOfT,
+            FieldNamingStrategy fnStrategy,
+            ExclusionStrategy exStrategy) {
 
         try {
-            Gson gson = gsonBuilder.create();
+            Gson gson = constructGson(fnStrategy, exStrategy);
             return gson.fromJson(jsonString, typeOfT);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
@@ -238,13 +236,27 @@ public class JsonUtils {
      * @return value object
      */
     public static <T> T jeToVo(JsonElement jsonElement, Type typeOfT) {
+        return jeToVo(jsonElement, typeOfT, null, null);
+    }
 
-        GsonBuilder gsonBuilder = new GsonBuilder()
-                .disableHtmlEscaping()
-                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+    /**
+     * google json object -> value object (with policy & strategy)
+     *
+     * @param jsonElement google json object
+     * @param typeOfT class type of value object (ex: ValueObject.class)
+     * @param fnStrategy field naming strategy
+     * @param exStrategy exclusion strategy
+     * @param <T> value object
+     * @return value object
+     */
+    public static <T> T jeToVo(
+            JsonElement jsonElement,
+            Type typeOfT,
+            FieldNamingStrategy fnStrategy,
+            ExclusionStrategy exStrategy) {
 
         try {
-            Gson gson = gsonBuilder.create();
+            Gson gson = constructGson(fnStrategy, exStrategy);
             return gson.fromJson(jsonElement, typeOfT);
         } catch (Exception e) {
             LOGGER.severe(e.getMessage());
