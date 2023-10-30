@@ -3,6 +3,7 @@ package com.narsil.misc;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.FieldNamingPolicy;
+import com.google.gson.FieldNamingStrategy;
 import com.google.gson.JsonElement;
 import com.google.gson.JsonParser;
 import org.junit.Before;
@@ -29,8 +30,9 @@ public class JsonUtilsTest {
     private JsonElement jsonElement = null;
     private final Map<String, Object> map = new HashMap<>();
     private File file = null;
-    private FieldNamingPolicy policy;
-    private ExclusionStrategy strategy;
+    private FieldNamingPolicy fnPolicy;
+    private FieldNamingStrategy fnStrategy;
+    private ExclusionStrategy exStrategy;
     private String jsonString2 = null;
 
     @Before
@@ -56,8 +58,15 @@ public class JsonUtilsTest {
             LOGGER.info(e.getMessage());
         }
 
-        policy = FieldNamingPolicy.UPPER_CASE_WITH_UNDERSCORES;
-        strategy = new ExclusionStrategy() {
+        fnPolicy = FieldNamingPolicy.UPPER_CASE_WITH_UNDERSCORES;
+        fnStrategy = field -> {
+            if (field.getDeclaringClass() == SampleTemplate.class && field.getName().equals("gammaDate")) {
+               return "deltaDate";
+            } else {
+                return field.getName();
+            }
+        };
+        exStrategy = new ExclusionStrategy() {
 
             @Override
             public boolean shouldSkipClass(Class<?> clazz) {
@@ -66,8 +75,8 @@ public class JsonUtilsTest {
 
             @Override
             public boolean shouldSkipField(FieldAttributes field) {
-                // filter "errorMessage"
-                return field.getDeclaringClass() == SampleTemplate.class && field.getName().equals("errorMessage");
+                // skip "gammaDate"
+                return field.getDeclaringClass() == SampleTemplate.class && field.getName().equals("gammaDate");
             }
         };
 
@@ -91,21 +100,28 @@ public class JsonUtilsTest {
     @Test
     public void test01_voToJs_B() {
 
-        String jsonString = JsonUtils.voToJs(vo, typeOfT, policy, null);
+        String jsonString = JsonUtils.voToJs(vo, typeOfT, fnPolicy, null);
         LOGGER.info(jsonString);
     }
 
     @Test
     public void test01_voToJs_C() {
 
-        String jsonString = JsonUtils.voToJs(vo, typeOfT, null, strategy);
+        String jsonString = JsonUtils.voToJs(vo, typeOfT, fnStrategy, null);
         LOGGER.info(jsonString);
     }
 
     @Test
     public void test01_voToJs_D() {
 
-        String jsonString = JsonUtils.voToJs(vo, typeOfT, policy, strategy);
+        String jsonString = JsonUtils.voToJs(vo, typeOfT, null, exStrategy);
+        LOGGER.info(jsonString);
+    }
+
+    @Test
+    public void test01_voToJs_E() {
+
+        String jsonString = JsonUtils.voToJs(vo, typeOfT, fnPolicy, exStrategy);
         LOGGER.info(jsonString);
     }
 
@@ -133,7 +149,7 @@ public class JsonUtilsTest {
     @Test
     public void test04_jsToVo_B() {
 
-        SampleTemplate sampleTemplate = JsonUtils.jsToVo(jsonString, typeOfT, policy);
+        SampleTemplate sampleTemplate = JsonUtils.jsToVo(jsonString, typeOfT, fnPolicy);
         LOGGER.info(sampleTemplate != null ? sampleTemplate.toJson() : null);
     }
 
@@ -147,7 +163,7 @@ public class JsonUtilsTest {
     @Test
     public void test04_jsToVo_D() {
 
-        SampleTemplate sampleTemplate = JsonUtils.jsToVo(jsonString2, typeOfT, policy);
+        SampleTemplate sampleTemplate = JsonUtils.jsToVo(jsonString2, typeOfT, fnPolicy);
         LOGGER.info(sampleTemplate != null ? sampleTemplate.toJson() : null);
     }
 

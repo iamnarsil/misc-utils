@@ -95,6 +95,33 @@ public class JsonUtils {
     }
 
     /**
+     * value object -> json string (with policy & strategy)
+     *
+     * @param vo value object
+     * @param typeOfT class type of value object (ex: ValueObject.class)
+     * @param fnStrategy field naming strategy
+     * @param exStrategy exclusion strategy
+     * @return json string
+     */
+    public static String voToJs(Object vo, Type typeOfT, FieldNamingStrategy fnStrategy, ExclusionStrategy exStrategy) {
+
+        GsonBuilder gsonBuilder = new GsonBuilder()
+                .disableHtmlEscaping()
+                .setDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+
+        if (fnStrategy != null) {
+            gsonBuilder.setFieldNamingStrategy(fnStrategy);
+        }
+
+        if (exStrategy != null) {
+            gsonBuilder.addSerializationExclusionStrategy(exStrategy);
+        }
+
+        Gson gson = gsonBuilder.create();
+        return gson.toJson(vo, typeOfT);
+    }
+
+    /**
      * value object -> google json object
      *
      * @param vo value object
