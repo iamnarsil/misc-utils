@@ -36,7 +36,7 @@ Required Java environment: Java 16 (or above)
 <dependency>
   <groupId>com.github.iamnarsil</groupId>
   <artifactId>misc-utils</artifactId>
-  <version>1.3-SNAPSHOT</version>
+  <version>1.4-SNAPSHOT</version>
 </dependency>
 ```
 
